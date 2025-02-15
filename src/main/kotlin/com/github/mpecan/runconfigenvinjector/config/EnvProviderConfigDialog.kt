@@ -166,17 +166,6 @@ class EnvProviderConfigDialog(
                                 }
                             }
                         )
-                        textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()).bindText(
-                            filePathField
-                        ).validation(
-                            DialogValidation {
-                                validateIfVisible("File") {
-                                    if (filePathField.get()
-                                            .isNotBlank()
-                                    ) null else ValidationInfo("File path cannot be empty")
-                                }
-                            }
-                        )
                     }
                     row("Encoding:") { textField().bindText(encodingField) }
                 }.visible(false)
