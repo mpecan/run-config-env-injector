@@ -43,6 +43,18 @@ class CliTokenRetriever(
                             process.outputStream.flush()
                         }
 
+                        authHandler.isSsoExpiredOrInvalid(error) -> {
+                            ProcessBuilder("aws", "sso", "login").start().also {
+                                authHandler.handleSsoChallenge(
+                                    it.errorStream.bufferedReader().readText()
+                                )?.let { challenge ->
+                                    authHandler.showSsoInstructions(challenge)
+                                    it.waitFor()
+                                }
+                            }.waitFor()
+                            throw RetryableException()
+                        }
+
                         else -> throw RuntimeException("Error getting authorization token: $error")
                     }
                 }

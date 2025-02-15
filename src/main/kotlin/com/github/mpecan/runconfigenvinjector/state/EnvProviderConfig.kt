@@ -22,8 +22,10 @@ data class CodeArtifactConfig(
     val domain: String = "",
     val domainOwner: String = "",
     val region: String = "",
-    val tokenDuration: Int = 3600
+    val tokenDuration: Int = 3600,
+    val executablePath: String = "aws"
 ) : EnvProviderConfig {
+
     override val type: String = "CodeArtifact"
 }
 
