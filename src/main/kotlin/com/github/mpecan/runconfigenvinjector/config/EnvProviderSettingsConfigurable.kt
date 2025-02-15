@@ -7,7 +7,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
-class EnvProviderSettingsConfigurable: Configurable {
+class EnvProviderSettingsConfigurable : Configurable {
     private var mainPanel: JPanel? = null
     private var configTable: EnvProviderConfigTable? = null
 
@@ -16,7 +16,6 @@ class EnvProviderSettingsConfigurable: Configurable {
 
         val table = EnvProviderConfigTable()
             .also { configTable = it }
-
         add(JPanel().apply {
             add(JButton("Add").apply {
                 addActionListener { table.addNewConfig() }
@@ -33,7 +32,7 @@ class EnvProviderSettingsConfigurable: Configurable {
     }
 
     override fun isModified(): Boolean {
-        return  configTable?.isModified() ?: false
+        return configTable?.isModified() ?: false
     }
 
     override fun apply() {

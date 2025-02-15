@@ -16,7 +16,7 @@ class CodeArtifactToken(private val token: String) : CacheableValue {
     override val value: String
         get() = token
 
-    private data class CodeArtifactTokenHeader(
+    data class CodeArtifactTokenHeader(
         val ver: Int,
         val isu: Long,
         val enc: String,
@@ -24,5 +24,8 @@ class CodeArtifactToken(private val token: String) : CacheableValue {
         val exp: Long,
         val alg: String,
         val iv: String
-    )
+    ){
+        @SuppressWarnings("unused") // Required for deserialization
+        constructor(): this(0, 0, "", "", 0, "", "")
+    }
 }
