@@ -66,17 +66,24 @@ jobs:
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
         run: ./gradlew publishPlugin
 
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.REPOSITORY_BUTLER_APP_ID }}
+          private_key: ${{ secrets.REPOSITORY_BUTLER_PEM }}
+
       # Upload artifact as a release asset
       - name: Upload Release Asset
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
 
       # Create a pull request
       - name: Create Pull Request
         if: ${{ steps.properties.outputs.changelog != '' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           BRANCH="changelog-update-$VERSION"
