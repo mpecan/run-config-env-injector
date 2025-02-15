@@ -1,18 +1,23 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.mpecan.runconfigenvinjector</id>
-    <name>run-config-env-injector</name>
+    <name>Run Config Env Injector</name>
     <vendor>mpecan</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.mpecan.runconfigenvinjector.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <applicationService
+          serviceImplementation="com.github.mpecan.runconfigenvinjector.state.EnvProviderSettings"/>
+        <runConfigurationExtension
+          implementation="com.github.mpecan.runconfigenvinjector.ext.EnvProviderRunConfigExtension"/>
+        <applicationConfigurable
+          parentId="build.tools"
+          displayName="Env Injector"
+          instance="com.github.mpecan.runconfigenvinjector.config.EnvProviderSettingsConfigurable"/>
+        <notificationGroup id="env-provider-injector" displayType="BALLOON" />
     </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.mpecan.runconfigenvinjector.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
 </idea-plugin>
