@@ -2,6 +2,14 @@
 
 # run-config-env-injector Changelog
 
+## [0.1.1](https://github.com/mpecan/run-config-env-injector/compare/v0.1.0...v0.1.1) (2025-02-15)
+
+
+### Bug Fixes
+
+* **aws-cf-handling:** improve error handling and validate that the aws cli is reachable ([564504a](https://github.com/mpecan/run-config-env-injector/commit/564504ac7493cdce3d877c99cbb2785c08b1d2ed))
+* **aws-cf-handling:** remove duplicated file input ([7a3d2b4](https://github.com/mpecan/run-config-env-injector/commit/7a3d2b43f67499ce3b24247277051280b445ee5c))
+
 ## [0.1.0](https://github.com/mpecan/run-config-env-injector/compare/v0.0.1...v0.1.0) (2025-02-15)
 
 
