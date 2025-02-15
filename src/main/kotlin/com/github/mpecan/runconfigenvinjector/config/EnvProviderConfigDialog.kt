@@ -6,7 +6,9 @@ import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.StructuredFileEnvProviderConfig
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.observable.properties.AtomicProperty
+import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.ui.SimpleListCellRenderer
@@ -28,6 +30,8 @@ class EnvProviderConfigDialog(
     private val providerTypeField = AtomicProperty(config.type)
 
     // CodeArtifact specific fields
+    private val executablePath =
+        AtomicProperty((config as? CodeArtifactConfig)?.executablePath ?: "aws")
     private val profileField = AtomicProperty((config as? CodeArtifactConfig)?.profile ?: "default")
     private val domainField = AtomicProperty((config as? CodeArtifactConfig)?.domain ?: "")
     private val domainOwnerField =
@@ -120,13 +124,40 @@ class EnvProviderConfigDialog(
                     row("Token Duration (seconds):") {
                         intTextField(3600..43200, 3600).bindIntText(tokenDurationField)
                     }
+                    row("Executable Path:") {
+                        textField().bindText(executablePath).validation(
+                            DialogValidation {
+                                validateIfVisible("CodeArtifact") {
+                                    when {
+                                        executablePath.get()
+                                            .isBlank() -> ValidationInfo("Executable path cannot be empty")
+
+                                        executablePath.get()
+                                            .contains(" ") -> ValidationInfo("Executable path cannot contain spaces")
+
+                                        executablePath.get().let {
+                                            Runtime.getRuntime().exec("which $it").waitFor() != 0
+                                        } -> ValidationInfo("Executable path does not exist")
+
+                                        else -> null
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
 
                 filePanel = panel {
                     row("File Path:") {
-                        textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()).bindText(
-                            filePathField
-                        ).validation(
+                        cell(TextFieldWithBrowseButton().apply {
+                            addBrowseFolderListener(
+                                "Select File",
+                                "Select the file to read environment variables from",
+                                null,
+                                FileChooserDescriptorFactory.createSingleFileDescriptor()
+                            )
+                            bind(envVarField)
+                        }).validation(
                             DialogValidation {
                                 validateIfVisible("File") {
                                     if (filePathField.get()
@@ -141,9 +172,15 @@ class EnvProviderConfigDialog(
 
                 structuredFilePanel = panel {
                     row("File Path:") {
-                        textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()).bindText(
-                            filePathField
-                        ).validation(
+                        cell(TextFieldWithBrowseButton().apply {
+                            addBrowseFolderListener(
+                                "Select File",
+                                "Select the file to read environment variables from",
+                                null,
+                                FileChooserDescriptorFactory.createSingleFileDescriptor()
+                            )
+                            bind(envVarField)
+                        }).validation(
                             DialogValidation {
                                 validateIfVisible("StructuredFile") {
                                     if (filePathField.get()
@@ -198,7 +235,8 @@ class EnvProviderConfigDialog(
             region = regionField.get(),
             tokenDuration = tokenDurationField.get(),
             enabled = enabled.get(),
-            enabledRunConfigurations = enabledRunConfigurations.get()
+            enabledRunConfigurations = enabledRunConfigurations.get(),
+            executablePath = executablePath.get()
         )
 
         "File" -> FileEnvProviderConfig(

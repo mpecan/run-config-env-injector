@@ -48,4 +48,8 @@ class AwsAuthenticationHandler {
             )
         }
     }
+
+    fun isSsoExpiredOrInvalid(error: String): Boolean {
+        return error.contains("The SSO session associated with this profile has expired") || error.contains("Error loading SSO Token")
+    }
 }
