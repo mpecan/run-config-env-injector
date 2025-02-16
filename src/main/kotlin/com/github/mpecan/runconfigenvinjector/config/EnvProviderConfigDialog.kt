@@ -136,7 +136,8 @@ class EnvProviderConfigDialog(
                                             .contains(" ") -> ValidationInfo("Executable path cannot contain spaces")
 
                                         executablePath.get().let {
-                                            Runtime.getRuntime().exec("which $it").waitFor() != 0
+                                            Runtime.getRuntime().exec(arrayOf("which", it))
+                                                .waitFor() != 0
                                         } -> ValidationInfo("Executable path does not exist")
 
                                         else -> null
@@ -151,10 +152,11 @@ class EnvProviderConfigDialog(
                     row("File Path:") {
                         cell(TextFieldWithBrowseButton().apply {
                             addBrowseFolderListener(
-                                "Select File",
-                                "Select the file to read environment variables from",
                                 null,
-                                FileChooserDescriptorFactory.createSingleFileDescriptor()
+                                FileChooserDescriptorFactory.createSingleFileDescriptor().apply {
+                                    title = "Select File"
+                                    description = "Select the file to read environment variables from"
+                                }
                             )
                             bind(envVarField)
                         }).validation(
@@ -174,10 +176,11 @@ class EnvProviderConfigDialog(
                     row("File Path:") {
                         cell(TextFieldWithBrowseButton().apply {
                             addBrowseFolderListener(
-                                "Select File",
-                                "Select the file to read environment variables from",
                                 null,
-                                FileChooserDescriptorFactory.createSingleFileDescriptor()
+                                FileChooserDescriptorFactory.createSingleFileDescriptor().apply {
+                                    title = "Select File"
+                                    description = "Select the file to read environment variables from"
+                                }
                             )
                             bind(envVarField)
                         }).validation(
