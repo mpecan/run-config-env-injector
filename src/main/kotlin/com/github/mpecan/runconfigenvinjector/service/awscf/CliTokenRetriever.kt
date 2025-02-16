@@ -33,7 +33,7 @@ class CliTokenRetriever(
                     when {
                         authHandler.handleSsoChallenge(error)?.let { challenge ->
                             authHandler.showSsoInstructions(challenge)
-                            ProcessBuilder("aws", "sso", "login").start().waitFor()
+                            ProcessBuilder(config.executablePath, "sso", "login").start().waitFor()
                             true
                         } == true -> throw RetryableException()
 
@@ -44,7 +44,7 @@ class CliTokenRetriever(
                         }
 
                         authHandler.isSsoExpiredOrInvalid(error) -> {
-                            ProcessBuilder("aws", "sso", "login").start().also {
+                            ProcessBuilder(config.executablePath, "sso", "login").start().also {
                                 authHandler.handleSsoChallenge(
                                     it.errorStream.bufferedReader().readText()
                                 )?.let { challenge ->
@@ -83,7 +83,7 @@ class CliTokenRetriever(
                 config.profile
             )
         return listOfNotNull(
-            "aws",
+            config.executablePath,
             "codeartifact",
             "get-authorization-token",
             *profile,
