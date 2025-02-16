@@ -1,7 +1,7 @@
 # Run Configuration Environment Injector
 
 [![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mpecan/rrun-config-env-injector)
-[![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/26543.svg?style=for-the-badge&logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/plugin/com.github.mpecan.runconfigenvinjector)
+[![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/26543.svg?style=for-the-badge&logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/plugin/26543-run-config-env-injector)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/26543.svg?style=for-the-badge)](https://plugins.jetbrains.com/plugin/com.github.mpecan.runconfigenvinjector)
 
 <!-- Plugin description -->
