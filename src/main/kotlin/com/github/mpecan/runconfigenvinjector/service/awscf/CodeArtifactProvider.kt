@@ -16,7 +16,7 @@ class CodeArtifactProvider(private val config: CodeArtifactConfig) :
         return try {
                 getTokenFromAwsCli(config)
         } catch (e: Exception) {
-            log.warn("Failed to get CodeArtifact token", e)
+            log.error("Failed to get CodeArtifact token", e)
             null
         }
     }
