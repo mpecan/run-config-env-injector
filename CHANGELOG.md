@@ -2,6 +2,21 @@
 
 # run-config-env-injector Changelog
 
+## [0.2.0](https://github.com/mpecan/run-config-env-injector/compare/v0.1.1...v0.2.0) (2025-02-16)
+
+
+### Features
+
+* **test-button:** add a button to enable testing configuration when setting them up ([#25](https://github.com/mpecan/run-config-env-injector/issues/25)) ([33c6441](https://github.com/mpecan/run-config-env-injector/commit/33c6441ed038cf4aa7944dc07c33dc3cf90e8195))
+* **use-executable-path:** use the provided executable path ([8d8b857](https://github.com/mpecan/run-config-env-injector/commit/8d8b857a9fb2edc9cf278b916ed88bb424bee11a))
+* **use-executable-path:** use the provided executable path ([#23](https://github.com/mpecan/run-config-env-injector/issues/23)) ([17e0eba](https://github.com/mpecan/run-config-env-injector/commit/17e0ebafbbc88af412ebc30a4987123a9f611b93))
+
+
+### Bug Fixes
+
+* **java-compat:** fix IntelliJ Platform '2024.3.3' requires java 21 compat ([59d5dfb](https://github.com/mpecan/run-config-env-injector/commit/59d5dfba3d223c8b4059f4b65b09d06b2daaca5b))
+* **java-compat:** increase min version to 243 ([0b99b95](https://github.com/mpecan/run-config-env-injector/commit/0b99b95966f18f01df501144df674302ccd86d4d))
+
 ## [0.1.1](https://github.com/mpecan/run-config-env-injector/compare/v0.1.0...v0.1.1) (2025-02-15)
 
 
