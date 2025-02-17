@@ -17,8 +17,8 @@
         <applicationConfigurable
           parentId="build.tools"
           displayName="Env Injector"
-          instance="com.github.mpecan.runconfigenvinjector.config.EnvProviderSettingsConfigurable"/>
-        <notificationGroup id="env-provider-injector" displayType="BALLOON" />
+          instance="com.github.mpecan.runconfigenvinjector.config.EnvProviderSettingsConfigurable" dynamic="true"/>
+         <notificationGroup id="env-provider-injector" displayType="BALLOON" />
     </extensions>
 
 </idea-plugin>
