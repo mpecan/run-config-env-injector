@@ -31,7 +31,7 @@ class EnvProviderRunConfigExtension : RunConfigurationExtension() {
         configService.getEnabledConfigurations().filter { config ->
             config.enabledRunConfigurations.contains(runConfigurationName)
         }.mapNotNull { config ->
-            val provider = EnvProviderFactory.getProvider(config)
+            val provider = EnvProviderFactory.createProvider(config)
             envValueCache.getValue(provider)?.let { token ->
                 config.environmentVariable to token.value
             }

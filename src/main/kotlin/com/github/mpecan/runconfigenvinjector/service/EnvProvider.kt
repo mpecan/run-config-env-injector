@@ -15,7 +15,7 @@ interface EnvProvider<T : EnvProviderConfig> {
 
 object EnvProviderFactory {
 
-    fun <T : EnvProviderConfig> getProvider(config: T): EnvProvider<out EnvProviderConfig> {
+    fun <T : EnvProviderConfig> createProvider(config: T): EnvProvider<out EnvProviderConfig> {
         return when(config) {
             is CodeArtifactConfig -> CodeArtifactProvider(config)
             is StructuredFileEnvProviderConfig -> StructuredFileEnvProvider(config)

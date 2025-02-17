@@ -1,20 +1,25 @@
 package com.github.mpecan.runconfigenvinjector.config
 
+import com.github.mpecan.runconfigenvinjector.service.EnvProviderFactory
 import com.github.mpecan.runconfigenvinjector.service.awscf.CliTokenRetriever.Companion.prepareProcessBuilder
 import com.github.mpecan.runconfigenvinjector.state.CodeArtifactConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.StructuredFileEnvProviderConfig
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.*
 import org.jetbrains.plugins.groovy.lang.resolve.log
+import java.awt.event.ActionEvent
+import javax.swing.Action
 import javax.swing.JComponent
 
 class EnvProviderConfigDialog(
@@ -29,7 +34,13 @@ class EnvProviderConfigDialog(
     private val enabledRunConfigurations =
         AtomicProperty(config.enabledRunConfigurations.ifEmpty { availableRunConfigurations.keys.toList() }
             .toSet())
-    private val providerTypeField = AtomicProperty(config.type)
+    private val providerTypeField = AtomicProperty(config.type.let {
+        when (it) {
+            "File" -> "File"
+            "StructuredFile" -> "StructuredFile"
+            else -> "CodeArtifact"
+        }
+    })
 
     // CodeArtifact specific fields
     private val executablePath =
@@ -66,7 +77,7 @@ class EnvProviderConfigDialog(
     fun validateIfVisible(
         providerType: String,
         validation: () -> ValidationInfo?
-    ): ValidationInfo? = if (providerTypeField.equals(providerType)) {
+    ): ValidationInfo? = if (providerTypeField.get() == providerType) {
         validation()
     } else null
 
@@ -102,9 +113,14 @@ class EnvProviderConfigDialog(
                         textField().bindText(domainField).validation(
                             DialogValidation {
                                 validateIfVisible("CodeArtifact") {
-                                    if (domainField.get()
-                                            .isNotBlank()
-                                    ) null else ValidationInfo("Domain cannot be empty")
+                                    when {
+                                        domainField.get()
+                                            .contains(" ") -> ValidationInfo("Domain cannot contain spaces")
+
+                                        domainField.get().length < 3 -> ValidationInfo("Domain must be at least 3 characters long")
+                                        domainField.get().matches(Regex("[a-zA-Z0-9-]+")) -> null
+                                        else -> ValidationInfo("Domain can only contain alphanumeric characters and hyphens")
+                                    }
                                 }
                             }
                         )
@@ -113,9 +129,15 @@ class EnvProviderConfigDialog(
                         textField().bindText(domainOwnerField).validation(
                             DialogValidation {
                                 validateIfVisible("CodeArtifact") {
-                                    if (domainOwnerField.get()
-                                            .isNotBlank()
-                                    ) null else ValidationInfo("Domain Owner cannot be empty")
+                                    // Minimum length of 12
+                                    when {
+                                        domainOwnerField.get()
+                                            .contains(" ") -> ValidationInfo("Domain Owner cannot contain spaces")
+
+                                        domainOwnerField.get().length != 12 -> ValidationInfo("Domain Owner must be at exactly 12 characters long")
+                                        domainOwnerField.get().matches(Regex("[0-9]+")) -> null
+                                        else -> ValidationInfo("Domain Owner can only contain numbers")
+                                    }
                                 }
                             }
                         )
@@ -163,10 +185,11 @@ class EnvProviderConfigDialog(
                                 null,
                                 FileChooserDescriptorFactory.createSingleFileDescriptor().apply {
                                     title = "Select File"
-                                    description = "Select the file to read environment variables from"
+                                    description =
+                                        "Select the file to read environment variables from"
                                 }
                             )
-                            bind(envVarField)
+                            bind(filePathField)
                         }).validation(
                             DialogValidation {
                                 validateIfVisible("File") {
@@ -187,16 +210,20 @@ class EnvProviderConfigDialog(
                                 null,
                                 FileChooserDescriptorFactory.createSingleFileDescriptor().apply {
                                     title = "Select File"
-                                    description = "Select the file to read environment variables from"
+                                    description =
+                                        "Select the file to read environment variables from"
                                 }
                             )
-                            bind(envVarField)
+                            bind(filePathField)
                         }).validation(
                             DialogValidation {
                                 validateIfVisible("StructuredFile") {
-                                    if (filePathField.get()
-                                            .isNotBlank()
-                                    ) null else ValidationInfo("File path cannot be empty")
+                                  when {
+                                      filePathField.get()
+                                          .isBlank() -> ValidationInfo("File path cannot be empty")
+
+                                      else -> null
+                                  }
                                 }
                             }
                         )
@@ -207,13 +234,23 @@ class EnvProviderConfigDialog(
                             SimpleListCellRenderer.create("") { it })
                             .bindItem(structuredFormatField)
                     }
-                    row("Key:") { textField().bindText(keyField) }
+                    row("Key:") { textField().bindText(keyField).validation(
+                        DialogValidation {
+                            validateIfVisible("StructuredFile") {
+                              when{
+                                keyField.get().isBlank() -> ValidationInfo("Key cannot be empty")
+                                else -> null
+                              }
+                            }
+                        }
+                    ) }
                     row("Encoding:") { textField().bindText(encodingField) }
                 }.visible(false)
             }
+
+            row("Enable the configuration:") { checkBox("Enabled").bindSelected(enabled) }
         }
 
-        row("Enable the configuration:") { checkBox("Enabled").bindSelected(enabled) }
         group("Enabled Run Configurations") {
             panel {
                 row {
@@ -231,6 +268,38 @@ class EnvProviderConfigDialog(
         }
     }
 
+    protected inner class TestConfigurationAction : DialogWrapperAction("Test Configuration") {
+        override fun doAction(e: ActionEvent) {
+            val validationResult = doValidateAll()
+            if (validationResult.isNotEmpty()) {
+                return
+            }
+            val providerType = providerTypeField.get()
+            val config = getUpdatedConfig()
+            try {
+                EnvProviderFactory.createProvider(config).getValue()
+                runInEdt {
+                    Messages.showInfoMessage(
+                        "$providerType token retrieved successfully",
+                        "Success"
+                    )
+                }
+            } catch (e: Exception) {
+                runInEdt {
+                    Messages.showErrorDialog(
+                        "Failed to get $providerType token: ${e.message}",
+                        "Error"
+                    )
+                }
+            }
+        }
+
+    }
+
+    override fun createLeftSideActions(): Array<Action> {
+        return arrayOf(TestConfigurationAction())
+    }
+
     private fun updateVisibility(providerType: String) {
         codeArtifactPanel.visible(providerType == "CodeArtifact")
         filePanel.visible(providerType == "File")
@@ -238,38 +307,44 @@ class EnvProviderConfigDialog(
     }
 
     fun getUpdatedConfig(): EnvProviderConfig = when (providerTypeField.get()) {
-        "CodeArtifact" -> CodeArtifactConfig(
-            environmentVariable = envVarField.get(),
-            profile = profileField.get(),
-            domain = domainField.get(),
-            domainOwner = domainOwnerField.get(),
-            region = regionField.get(),
-            tokenDuration = tokenDurationField.get(),
-            enabled = enabled.get(),
-            enabledRunConfigurations = enabledRunConfigurations.get(),
-            executablePath = executablePath.get()
-        )
+        "CodeArtifact" -> constructCodeArtifactConfig()
 
-        "File" -> FileEnvProviderConfig(
-            environmentVariable = envVarField.get(),
-            enabled = enabled.get(),
-            enabledRunConfigurations = enabledRunConfigurations.get(),
-            filePath = filePathField.get(),
-            encoding = encodingField.get()
-        )
+        "File" -> constructFileEnvProviderConfig()
 
-        "StructuredFile" -> StructuredFileEnvProviderConfig(
-            environmentVariable = envVarField.get(),
-            enabled = enabled.get(),
-            enabledRunConfigurations = enabledRunConfigurations.get(),
-            filePath = filePathField.get(),
-            format = structuredFormatField.get(),
-            key = keyField.get(),
-            encoding = encodingField.get()
-        )
+        "StructuredFile" -> constructStructuredFileEnvProviderConfig()
 
         else -> throw IllegalStateException("Unknown provider type: ${providerTypeField.get()}")
     }
+
+    private fun constructStructuredFileEnvProviderConfig() = StructuredFileEnvProviderConfig(
+        environmentVariable = envVarField.get(),
+        enabled = enabled.get(),
+        enabledRunConfigurations = enabledRunConfigurations.get(),
+        filePath = filePathField.get(),
+        format = structuredFormatField.get(),
+        key = keyField.get(),
+        encoding = encodingField.get()
+    )
+
+    private fun constructFileEnvProviderConfig() = FileEnvProviderConfig(
+        environmentVariable = envVarField.get(),
+        enabled = enabled.get(),
+        enabledRunConfigurations = enabledRunConfigurations.get(),
+        filePath = filePathField.get(),
+        encoding = encodingField.get()
+    )
+
+    private fun constructCodeArtifactConfig() = CodeArtifactConfig(
+        environmentVariable = envVarField.get(),
+        profile = profileField.get(),
+        domain = domainField.get(),
+        domainOwner = domainOwnerField.get(),
+        region = regionField.get(),
+        tokenDuration = tokenDurationField.get(),
+        enabled = enabled.get(),
+        enabledRunConfigurations = enabledRunConfigurations.get(),
+        executablePath = executablePath.get()
+    )
 
     private fun isValidEnvVarName(name: String): Boolean =
         name.matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))
