@@ -1,6 +1,7 @@
 package com.github.mpecan.runconfigenvinjector.config
 
 import com.github.mpecan.runconfigenvinjector.service.EnvProviderFactory
+import com.github.mpecan.runconfigenvinjector.service.awscf.CliTokenRetriever.Companion.prepareProcessBuilder
 import com.github.mpecan.runconfigenvinjector.state.CodeArtifactConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
@@ -16,6 +17,7 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.*
+import org.jetbrains.plugins.groovy.lang.resolve.log
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JComponent
@@ -78,6 +80,8 @@ class EnvProviderConfigDialog(
     ): ValidationInfo? = if (providerTypeField.get() == providerType) {
         validation()
     } else null
+
+
 
     override fun createCenterPanel(): JComponent = panel {
 
@@ -158,9 +162,13 @@ class EnvProviderConfigDialog(
                                             .contains(" ") -> ValidationInfo("Executable path cannot contain spaces")
 
                                         executablePath.get().let {
-                                            Runtime.getRuntime().exec(arrayOf("which", it))
-                                                .waitFor() != 0
-                                        } -> ValidationInfo("Executable path does not exist")
+                                            prepareProcessBuilder(arrayOf("which", it))
+                                                .start().waitFor() != 0
+                                        } -> ValidationInfo("Executable path does not exist").also {
+                                            log.warn("Process env: ${ProcessBuilder("which", "it")
+                                                .environment()}")
+                                            log.warn(System.getenv("PATH"))
+                                        }
 
                                         else -> null
                                     }

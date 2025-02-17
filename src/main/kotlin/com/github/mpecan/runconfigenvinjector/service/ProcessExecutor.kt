@@ -1,5 +1,6 @@
 package com.github.mpecan.runconfigenvinjector.service
 
+import com.github.mpecan.runconfigenvinjector.service.awscf.CliTokenRetriever.Companion.prepareProcessBuilder
 import com.intellij.openapi.diagnostic.Logger
 
 class ProcessExecutor {
@@ -14,7 +15,7 @@ class ProcessExecutor {
         command: Array<String>,
         errorHandler: (Process, String) -> Unit = { _, _ -> }
     ): String {
-        val process = Runtime.getRuntime().exec(command)
+        val process = prepareProcessBuilder(command).start()
         val result = collectProcessOutput(process)
         
         if (result.error.isNotEmpty()) {

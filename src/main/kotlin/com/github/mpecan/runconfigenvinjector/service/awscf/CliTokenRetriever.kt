@@ -4,6 +4,8 @@ import com.github.mpecan.runconfigenvinjector.service.CacheableValue
 import com.github.mpecan.runconfigenvinjector.service.ProcessExecutor
 import com.github.mpecan.runconfigenvinjector.service.TokenRetriever
 import com.github.mpecan.runconfigenvinjector.state.CodeArtifactConfig
+import com.intellij.execution.configurations.GeneralCommandLine
+import org.jetbrains.plugins.terminal.TerminalOptionsProvider
 
 class CliTokenRetriever(
     private val processExecutor: ProcessExecutor = ProcessExecutor(),
@@ -20,10 +22,18 @@ class CliTokenRetriever(
             null
         }
     }
+    companion object{
+        fun prepareProcessBuilder(command: Array<String>) : ProcessBuilder {
+            val generalCommandLine = GeneralCommandLine()
+            generalCommandLine.exePath = command[0]
+            generalCommandLine.addParameters(command.drop(1))
+            return generalCommandLine.toProcessBuilder()
+        }
+    }
 
     private fun getTokenFromCli(config: CodeArtifactConfig): String? {
         val command = buildCommand(config)
-
+        TerminalOptionsProvider.instance.state.myShellPath
         var result: String? = null
         var retryNeeded = true
 
@@ -33,7 +43,7 @@ class CliTokenRetriever(
                     when {
                         authHandler.handleSsoChallenge(error)?.let { challenge ->
                             authHandler.showSsoInstructions(challenge)
-                            ProcessBuilder(config.executablePath, "sso", "login").start().waitFor()
+                            prepareProcessBuilder(arrayOf(config.executablePath, "sso", "login")).start().waitFor()
                             true
                         } == true -> throw RetryableException()
 
@@ -44,7 +54,7 @@ class CliTokenRetriever(
                         }
 
                         authHandler.isSsoExpiredOrInvalid(error) -> {
-                            ProcessBuilder(config.executablePath, "sso", "login").start().also {
+                            prepareProcessBuilder(arrayOf(config.executablePath, "sso", "login")).start().also {
                                 authHandler.handleSsoChallenge(
                                     it.errorStream.bufferedReader().readText()
                                 )?.let { challenge ->
