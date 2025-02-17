@@ -7,6 +7,14 @@
 <!-- Plugin description -->
 An IntelliJ IDEA plugin that enables dynamic injection of environment variables into your run configurations. Originally designed for AWS CodeArtifact authentication token injection, it has evolved to support multiple environment variable sources, making it a versatile tool for managing environment variables in your IDE run configurations.
 
+
+## Inspiration
+This plugin is heavily inspired by the [CodeArtifact+Maven Idea plugin](https://github.com/coderazzi/aws_codeartifact_maven) by coderazzi. It aims to provide a more general solution for managing environment variables in IntelliJ IDEA run configurations.
+
+I attempted to make the plugin more flexible and extensible by supporting multiple environment variable sources and providing a more user-friendly interface for managing environment variables.
+
+I am still working on improving the plugin and adding new features, so any feedback or contributions are welcome!
+
 ## Features
 
 - Inject environment variables from multiple sources:
