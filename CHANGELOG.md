@@ -2,6 +2,17 @@
 
 # run-config-env-injector Changelog
 
+## [1.0.0](https://github.com/mpecan/run-config-env-injector/compare/v0.2.0...v1.0.0) (2025-02-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **aws-cf-handling:** use GeneralCommandLine to ensure correct pickup of CMD env ([#30](https://github.com/mpecan/run-config-env-injector/issues/30))
+
+### Features
+
+* **aws-cf-handling:** use GeneralCommandLine to ensure correct pickup of CMD env ([#30](https://github.com/mpecan/run-config-env-injector/issues/30)) ([ebbd8e6](https://github.com/mpecan/run-config-env-injector/commit/ebbd8e63f70d348f62647d085d4b89aa3d85a90d))
+
 ## [0.2.0](https://github.com/mpecan/run-config-env-injector/compare/v0.1.1...v0.2.0) (2025-02-16)
 
 
