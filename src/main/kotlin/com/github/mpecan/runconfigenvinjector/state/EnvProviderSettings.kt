@@ -1,25 +1,19 @@
 package com.github.mpecan.runconfigenvinjector.state
 
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.service
+import com.intellij.openapi.components.*
 
 
 @State(
     name = "EnvInjectorSettings",
-    storages = [Storage("envInjectorSettings.xml")]
+    storages = [Storage("envInjector.xml")]
 )
-class EnvProviderSettings : PersistentStateComponent<EnvProviderSettings> {
-    var configurations: MutableList<EnvProviderConfig> = mutableListOf()
-
-    override fun getState() = this
-
-    override fun loadState(state: EnvProviderSettings) {
-        configurations = state.configurations
-    }
-
+class EnvProviderSettings : SimplePersistentStateComponent<EnvProviderState>(EnvProviderState()) {
     companion object {
         fun getInstance() = service<EnvProviderSettings>()
     }
 }
+
+class EnvProviderState: BaseState() {
+    var configurations by list<EnvProviderConfig>()
+}
+

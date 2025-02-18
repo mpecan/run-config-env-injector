@@ -1,17 +1,14 @@
 package com.github.mpecan.runconfigenvinjector.config
 
-import com.github.mpecan.runconfigenvinjector.service.EnvProviderFactory
 import com.github.mpecan.runconfigenvinjector.service.awscf.CliTokenRetriever.Companion.prepareProcessBuilder
 import com.github.mpecan.runconfigenvinjector.state.CodeArtifactConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.StructuredFileEnvProviderConfig
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
@@ -23,8 +20,9 @@ import javax.swing.Action
 import javax.swing.JComponent
 
 class EnvProviderConfigDialog(
-    config: EnvProviderConfig
-) : DialogWrapper(true) {
+    config: EnvProviderConfig,
+    private val presenter: DialogPresenter = DefaultDialogPresenter()
+) : DialogWrapper(true), ConfigurationDialog {
     private val availableRunConfigurations = mapOf(
         "MavenRunConfiguration" to "Maven",
         "GradleRunConfiguration" to "Gradle"
@@ -268,32 +266,33 @@ class EnvProviderConfigDialog(
         }
     }
 
+
     protected inner class TestConfigurationAction : DialogWrapperAction("Test Configuration") {
         override fun doAction(e: ActionEvent) {
-            val validationResult = doValidateAll()
-            if (validationResult.isNotEmpty()) {
-                return
-            }
-            val providerType = providerTypeField.get()
-            val config = getUpdatedConfig()
-            try {
-                EnvProviderFactory.createProvider(config).getValue()
-                runInEdt {
-                    Messages.showInfoMessage(
-                        "$providerType token retrieved successfully",
-                        "Success"
-                    )
-                }
-            } catch (e: Exception) {
-                runInEdt {
-                    Messages.showErrorDialog(
-                        "Failed to get $providerType token: ${e.message}",
-                        "Error"
-                    )
-                }
-            }
+            presenter.testConfiguration(this@EnvProviderConfigDialog)
         }
+    }
 
+    override fun doOKAction() {
+        if (presenter.showDialog(this)) {
+            super.doOKAction()
+        }
+    }
+
+    override fun setProviderType(providerType: String) {
+        providerTypeField.set(providerType)
+        updateVisibility(providerType)
+    }
+
+    override fun validateDialog(): List<ValidationInfo> =
+        doValidateAll()
+
+    override fun show() {
+        super.show()
+    }
+
+    override fun showAndGet(): Boolean {
+        return super.showAndGet()
     }
 
     override fun createLeftSideActions(): Array<Action> {
@@ -306,7 +305,7 @@ class EnvProviderConfigDialog(
         structuredFilePanel.visible(providerType == "StructuredFile")
     }
 
-    fun getUpdatedConfig(): EnvProviderConfig = when (providerTypeField.get()) {
+    override fun getUpdatedConfig(): EnvProviderConfig = when (providerTypeField.get()) {
         "CodeArtifact" -> constructCodeArtifactConfig()
 
         "File" -> constructFileEnvProviderConfig()

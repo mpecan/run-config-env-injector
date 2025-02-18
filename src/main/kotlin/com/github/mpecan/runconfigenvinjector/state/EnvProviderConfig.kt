@@ -1,10 +1,15 @@
 package com.github.mpecan.runconfigenvinjector.state
 
-sealed interface EnvProviderConfig {
+sealed interface EnvProviderConfig  {
     val environmentVariable: String
     val enabled: Boolean
     val enabledRunConfigurations: Set<String>
     val type: String
+    fun copy(
+        environmentVariable: String = this.environmentVariable,
+        enabled: Boolean = this.enabled,
+        enabledRunConfigurations: Set<String> = this.enabledRunConfigurations
+    ): EnvProviderConfig
 }
 
 data class BaseEnvProviderConfig(
@@ -12,7 +17,15 @@ data class BaseEnvProviderConfig(
     override val enabled: Boolean = true,
     override val enabledRunConfigurations: Set<String> = emptySet(),
     override val type: String
-) : EnvProviderConfig
+) : EnvProviderConfig {
+    override fun copy(
+        environmentVariable: String,
+        enabled: Boolean,
+        enabledRunConfigurations: Set<String>
+    ): EnvProviderConfig {
+        return BaseEnvProviderConfig(environmentVariable, enabled, enabledRunConfigurations, type)
+    }
+}
 
 data class CodeArtifactConfig(
     override val environmentVariable: String = "",
@@ -27,6 +40,13 @@ data class CodeArtifactConfig(
 ) : EnvProviderConfig {
 
     override val type: String = "CodeArtifact"
+    override fun copy(
+        environmentVariable: String,
+        enabled: Boolean,
+        enabledRunConfigurations: Set<String>
+    ): EnvProviderConfig {
+        return CodeArtifactConfig(environmentVariable, enabled, enabledRunConfigurations, profile, domain, domainOwner, region, tokenDuration, executablePath)
+    }
 }
 
 data class FileEnvProviderConfig(
@@ -37,6 +57,13 @@ data class FileEnvProviderConfig(
     val encoding: String = "UTF-8"
 ) : EnvProviderConfig {
     override val type: String = "File"
+    override fun copy(
+        environmentVariable: String,
+        enabled: Boolean,
+        enabledRunConfigurations: Set<String>
+    ): EnvProviderConfig {
+        return FileEnvProviderConfig(environmentVariable, enabled, enabledRunConfigurations, filePath, encoding)
+    }
 }
 
 data class StructuredFileEnvProviderConfig(
@@ -49,4 +76,11 @@ data class StructuredFileEnvProviderConfig(
     val encoding: String = "UTF-8"
 ) : EnvProviderConfig {
     override val type: String = "StructuredFile"
+    override fun copy(
+        environmentVariable: String,
+        enabled: Boolean,
+        enabledRunConfigurations: Set<String>
+    ): EnvProviderConfig {
+        return StructuredFileEnvProviderConfig(environmentVariable, enabled, enabledRunConfigurations, filePath, format, key, encoding)
+    }
 }
