@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
     id("org.sonarqube") version "6.0.1.5171"
-    jacoco
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -128,6 +127,7 @@ kover {
             xml {
                 onCheck = true
             }
+
         }
     }
 }
@@ -137,7 +137,7 @@ sonar {
         property("sonar.projectKey", "mpecan_run-config-env-injector")
         property("sonar.organization", "mpecan")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/kover/report.xml")
         property("sonar.java.coveragePlugin", "jacoco")
         property("sonar.coverage.exclusions", "**/test/**,**/build/**")
     }
@@ -150,18 +150,6 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
-    }
-
-    test {
-        finalizedBy(jacocoTestReport)
-    }
-
-    jacocoTestReport {
-        dependsOn(test)
-        reports {
-            xml.required.set(true)
-            html.required.set(true)
-        }
     }
 }
 
