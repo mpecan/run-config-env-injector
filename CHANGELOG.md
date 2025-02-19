@@ -2,6 +2,13 @@
 
 # run-config-env-injector Changelog
 
+## [1.1.0](https://github.com/mpecan/run-config-env-injector/compare/v1.0.0...v1.1.0) (2025-02-19)
+
+
+### Features
+
+* **tests:** add ui tests ([#35](https://github.com/mpecan/run-config-env-injector/issues/35)) ([2c5ec5e](https://github.com/mpecan/run-config-env-injector/commit/2c5ec5e69cf6a62b64d773e57d0dd35636a62137))
+
 ## [1.0.0](https://github.com/mpecan/run-config-env-injector/compare/v0.2.0...v1.0.0) (2025-02-17)
 
 
