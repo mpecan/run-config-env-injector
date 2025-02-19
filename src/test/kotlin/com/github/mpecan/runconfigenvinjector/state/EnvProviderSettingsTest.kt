@@ -111,4 +111,56 @@ class EnvProviderSettingsTest : BasePlatformTestCase() {
             assertEquals(original.type, retrieved.type)
         }
     }
+
+    fun testRetrieveIncompleteConfigurationCodeArtifact() {
+        val storedConfiguration = StoredConfiguration().apply {
+            this.environmentVariable = null
+            this.enabled = true
+            this.enabledRunConfigurations = mutableListOf()
+            this.type = "CodeArtifact"
+        }
+
+        CodeArtifactConfig.fromStoredConfiguration(storedConfiguration).apply {
+            assertEquals("", environmentVariable)
+            assertEquals(true, enabled)
+            assertEquals(emptySet<String>(), enabledRunConfigurations)
+            assertEquals("", region)
+            assertEquals("", domain)
+            assertEquals("", domainOwner)
+            assertEquals(3600, tokenDuration)
+            assertEquals("aws", executablePath)
+        }
+    }
+
+    fun testRetrieveIncompleteConfigurationFile() {
+        val storedConfiguration = StoredConfiguration().apply {
+            this.environmentVariable = null
+            this.enabled = true
+            this.enabledRunConfigurations = mutableListOf()
+            this.type = "File"
+        }
+
+        FileEnvProviderConfig.fromStoredConfiguration(storedConfiguration).apply {
+            assertEquals("", environmentVariable)
+            assertEquals(true, enabled)
+            assertEquals(emptySet<String>(), enabledRunConfigurations)
+            assertEquals("", filePath)
+        }
+    }
+
+    fun testRetrieveIncompleteConfigurationStructuredFile() {
+        val storedConfiguration = StoredConfiguration().apply {
+            this.environmentVariable = null
+            this.enabled = true
+            this.enabledRunConfigurations = mutableListOf()
+            this.type = "StructuredFile"
+        }
+
+        StructuredFileEnvProviderConfig.fromStoredConfiguration(storedConfiguration).apply {
+            assertEquals("", environmentVariable)
+            assertEquals(true, enabled)
+            assertEquals(emptySet<String>(), enabledRunConfigurations)
+            assertEquals("", filePath)
+        }
+    }
 }
