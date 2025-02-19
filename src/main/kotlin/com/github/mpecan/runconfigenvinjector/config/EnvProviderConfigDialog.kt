@@ -1,17 +1,14 @@
 package com.github.mpecan.runconfigenvinjector.config
 
-import com.github.mpecan.runconfigenvinjector.service.EnvProviderFactory
 import com.github.mpecan.runconfigenvinjector.service.awscf.CliTokenRetriever.Companion.prepareProcessBuilder
 import com.github.mpecan.runconfigenvinjector.state.CodeArtifactConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.StructuredFileEnvProviderConfig
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
@@ -23,15 +20,16 @@ import javax.swing.Action
 import javax.swing.JComponent
 
 class EnvProviderConfigDialog(
-    config: EnvProviderConfig
-) : DialogWrapper(true) {
+    config: EnvProviderConfig,
+    private val presenter: DialogPresenter = DefaultDialogPresenter()
+) : DialogWrapper(true), ConfigurationDialog {
     private val availableRunConfigurations = mapOf(
         "MavenRunConfiguration" to "Maven",
         "GradleRunConfiguration" to "Gradle"
     )
-    private val envVarField = AtomicProperty(config.environmentVariable)
-    private val enabled = AtomicProperty(config.enabled)
-    private val enabledRunConfigurations =
+    internal val envVarField = AtomicProperty(config.environmentVariable)
+    internal val enabled = AtomicProperty(config.enabled)
+    internal val enabledRunConfigurations =
         AtomicProperty(config.enabledRunConfigurations.ifEmpty { availableRunConfigurations.keys.toList() }
             .toSet())
     private val providerTypeField = AtomicProperty(config.type.let {
@@ -54,7 +52,11 @@ class EnvProviderConfigDialog(
         AtomicProperty((config as? CodeArtifactConfig)?.tokenDuration ?: 3600)
 
     // File specific fields
-    private val filePathField = AtomicProperty((config as? FileEnvProviderConfig)?.filePath ?: "")
+    private val filePathField = AtomicProperty(when{
+        config is FileEnvProviderConfig -> config.filePath
+        config is StructuredFileEnvProviderConfig -> config.filePath
+        else -> ""
+    })
     private val encodingField =
         AtomicProperty((config as? FileEnvProviderConfig)?.encoding ?: "UTF-8")
 
@@ -268,32 +270,33 @@ class EnvProviderConfigDialog(
         }
     }
 
+
     protected inner class TestConfigurationAction : DialogWrapperAction("Test Configuration") {
         override fun doAction(e: ActionEvent) {
-            val validationResult = doValidateAll()
-            if (validationResult.isNotEmpty()) {
-                return
-            }
-            val providerType = providerTypeField.get()
-            val config = getUpdatedConfig()
-            try {
-                EnvProviderFactory.createProvider(config).getValue()
-                runInEdt {
-                    Messages.showInfoMessage(
-                        "$providerType token retrieved successfully",
-                        "Success"
-                    )
-                }
-            } catch (e: Exception) {
-                runInEdt {
-                    Messages.showErrorDialog(
-                        "Failed to get $providerType token: ${e.message}",
-                        "Error"
-                    )
-                }
-            }
+            presenter.testConfiguration(this@EnvProviderConfigDialog)
         }
+    }
 
+    override fun doOKAction() {
+        if (presenter.showDialog(this)) {
+            super.doOKAction()
+        }
+    }
+
+    override fun setProviderType(providerType: String) {
+        providerTypeField.set(providerType)
+        updateVisibility(providerType)
+    }
+
+    override fun validateDialog(): List<ValidationInfo> =
+        doValidateAll()
+
+    override fun show() {
+        super.show()
+    }
+
+    override fun showAndGet(): Boolean {
+        return super.showAndGet()
     }
 
     override fun createLeftSideActions(): Array<Action> {
@@ -306,7 +309,7 @@ class EnvProviderConfigDialog(
         structuredFilePanel.visible(providerType == "StructuredFile")
     }
 
-    fun getUpdatedConfig(): EnvProviderConfig = when (providerTypeField.get()) {
+    override fun getUpdatedConfig(): EnvProviderConfig = when (providerTypeField.get()) {
         "CodeArtifact" -> constructCodeArtifactConfig()
 
         "File" -> constructFileEnvProviderConfig()

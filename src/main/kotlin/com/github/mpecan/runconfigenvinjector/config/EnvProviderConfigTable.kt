@@ -9,7 +9,9 @@ import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.table.AbstractTableModel
 
-class EnvProviderConfigTable : JTable() {
+class EnvProviderConfigTable(
+    private val dialogFactory: EnvProviderDialogFactory = DefaultEnvProviderDialogFactory()
+) : JTable() {
     private val tableModel = EnvProviderTableModel()
 
     init {
@@ -28,8 +30,7 @@ class EnvProviderConfigTable : JTable() {
         val row = selectedRow
         if (row >= 0) {
             val config = tableModel.getConfigAt(row)
-            val dialog =
-                EnvProviderConfigDialog(config)
+            val dialog = dialogFactory.createDialog(config)
             if (dialog.showAndGet()) {
                 tableModel.updateConfig(row, dialog.getUpdatedConfig())
             }
@@ -37,9 +38,7 @@ class EnvProviderConfigTable : JTable() {
     }
 
     fun addNewConfig() {
-        val dialog = EnvProviderConfigDialog(
-            BaseEnvProviderConfig(type = "CodeArtifact")
-        )
+        val dialog = dialogFactory.createDialog(BaseEnvProviderConfig(type = "CodeArtifact"))
         if (dialog.showAndGet()) {
             tableModel.addConfig(dialog.getUpdatedConfig())
         }
@@ -66,7 +65,7 @@ class EnvProviderTableModel : AbstractTableModel() {
 
     init {
         // validate and discard invalid configurations on load
-        val validConfigurations = EnvProviderSettings.getInstance().configurations.filter {
+        val validConfigurations = EnvProviderSettings.getInstance().state.configurations.filter {
            try {
                it.environmentVariable.isNotBlank() && it.type.isNotBlank()
            } catch (e: Exception) {
@@ -114,8 +113,8 @@ class EnvProviderTableModel : AbstractTableModel() {
     }
 
     fun applySettings() {
-        EnvProviderSettings.getInstance().configurations = ArrayList(configs)
+        EnvProviderSettings.getInstance().state.configurations = ArrayList(configs)
     }
 
-    fun isModified() = EnvProviderSettings.getInstance().configurations != configs
+    fun isModified() = EnvProviderSettings.getInstance().state.configurations != configs
 }

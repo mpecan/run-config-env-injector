@@ -38,6 +38,8 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation(libs.kotlinTest)
     testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
         create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
@@ -125,6 +127,7 @@ kover {
             xml {
                 onCheck = true
             }
+
         }
     }
 }
@@ -134,6 +137,9 @@ sonar {
         property("sonar.projectKey", "mpecan_run-config-env-injector")
         property("sonar.organization", "mpecan")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/kover/report.xml")
+        property("sonar.java.coveragePlugin", "jacoco")
+        property("sonar.coverage.exclusions", "**/test/**,**/build/**")
     }
 }
 
