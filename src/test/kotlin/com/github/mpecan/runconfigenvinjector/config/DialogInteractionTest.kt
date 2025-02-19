@@ -12,13 +12,13 @@ class DialogInteractionTest : BasePlatformTestCase() {
     override fun setUp() {
         super.setUp()
         mockDialog = mock()
-        config = BaseEnvProviderConfig(
+        config = FileEnvProviderConfig(
             environmentVariable = "TEST_VAR",
-            type = "CodeArtifact",
             enabled = true,
-            enabledRunConfigurations = setOf()
+            enabledRunConfigurations = setOf(),
+            filePath = "test.txt"
         )
-        EnvProviderSettings.getInstance().state.configurations = mutableListOf(config)
+        EnvProviderSettings.getInstance().state.setToStoredConfigurations(mutableListOf(config))
     }
 
     fun testDialogValidationFailureFlow() {
