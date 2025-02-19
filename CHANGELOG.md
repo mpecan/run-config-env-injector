@@ -2,6 +2,13 @@
 
 # run-config-env-injector Changelog
 
+## [1.1.1](https://github.com/mpecan/run-config-env-injector/compare/v1.1.0...v1.1.1) (2025-02-19)
+
+
+### Bug Fixes
+
+* **bug:** fix bug with not being able to save ([#39](https://github.com/mpecan/run-config-env-injector/issues/39)) ([0060572](https://github.com/mpecan/run-config-env-injector/commit/00605720e33dacfa32cdba07904a0e137cf487a2))
+
 ## [1.1.0](https://github.com/mpecan/run-config-env-injector/compare/v1.0.0...v1.1.0) (2025-02-19)
 
 
