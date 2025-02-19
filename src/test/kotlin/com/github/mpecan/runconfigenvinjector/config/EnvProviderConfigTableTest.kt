@@ -3,6 +3,7 @@ package com.github.mpecan.runconfigenvinjector.config
 import com.github.mpecan.runconfigenvinjector.state.BaseEnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
 import com.github.mpecan.runconfigenvinjector.state.EnvProviderSettings
+import com.github.mpecan.runconfigenvinjector.state.FileEnvProviderConfig
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.util.ui.UIUtil
 import org.mockito.kotlin.any
@@ -23,23 +24,23 @@ class EnvProviderConfigTableTest : BasePlatformTestCase() {
 
         // Create test configurations
         testConfigs = listOf(
-            BaseEnvProviderConfig(
+            FileEnvProviderConfig(
                 environmentVariable = "TEST_VAR_1",
-                type = "CodeArtifact",
                 enabled = true,
-                enabledRunConfigurations = setOf("MavenRunConfiguration")
+                enabledRunConfigurations = setOf("MavenRunConfiguration"),
+                filePath = "/path/to/secrets.txt"
             ),
-            BaseEnvProviderConfig(
+            FileEnvProviderConfig(
                 environmentVariable = "TEST_VAR_2",
-                type = "File",
                 enabled = false,
-                enabledRunConfigurations = setOf("GradleRunConfiguration")
+                enabledRunConfigurations = setOf("GradleRunConfiguration"),
+                filePath = "/path/to/secrets2.txt"
             )
         )
 
         // Initialize settings with test data
         val settings = EnvProviderSettings.getInstance().state
-        settings.configurations = ArrayList(testConfigs)
+        settings.setToStoredConfigurations(testConfigs)
 
         // Create table
         configurationDialog = mock<ConfigurationDialog>()
@@ -65,7 +66,7 @@ class EnvProviderConfigTableTest : BasePlatformTestCase() {
 
         // Test first row
         assertEquals("TEST_VAR_1", model.getValueAt(0, 0))
-        assertEquals("CodeArtifact", model.getValueAt(0, 1))
+        assertEquals("File", model.getValueAt(0, 1))
         assertEquals("Maven", model.getValueAt(0, 2))
         assertEquals(true, model.getValueAt(0, 3))
 
