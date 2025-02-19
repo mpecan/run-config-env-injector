@@ -52,11 +52,13 @@ class EnvProviderConfigDialog(
         AtomicProperty((config as? CodeArtifactConfig)?.tokenDuration ?: 3600)
 
     // File specific fields
-    private val filePathField = AtomicProperty(when{
-        config is FileEnvProviderConfig -> config.filePath
-        config is StructuredFileEnvProviderConfig -> config.filePath
-        else -> ""
-    })
+    private val filePathField = AtomicProperty(
+        when (config) {
+            is FileEnvProviderConfig -> config.filePath
+            is StructuredFileEnvProviderConfig -> config.filePath
+            else -> ""
+        }
+    )
     private val encodingField =
         AtomicProperty((config as? FileEnvProviderConfig)?.encoding ?: "UTF-8")
 
@@ -84,6 +86,16 @@ class EnvProviderConfigDialog(
     } else null
 
 
+    private fun fileFieldValidation() = DialogValidation {
+        validateIfVisible("StructuredFile") {
+            when {
+                filePathField.get()
+                    .isBlank() -> ValidationInfo("File path cannot be empty")
+
+                else -> null
+            }
+        }
+    }
 
     override fun createCenterPanel(): JComponent = panel {
 
@@ -167,8 +179,12 @@ class EnvProviderConfigDialog(
                                             prepareProcessBuilder(arrayOf("which", it))
                                                 .start().waitFor() != 0
                                         } -> ValidationInfo("Executable path does not exist").also {
-                                            log.warn("Process env: ${ProcessBuilder("which", "it")
-                                                .environment()}")
+                                            log.warn(
+                                                "Process env: ${
+                                                    ProcessBuilder("which", "it")
+                                                        .environment()
+                                                }"
+                                            )
                                             log.warn(System.getenv("PATH"))
                                         }
 
@@ -178,7 +194,7 @@ class EnvProviderConfigDialog(
                             }
                         )
                     }
-                }
+                }.visible(providerTypeField.get() == "CodeArtifact")
 
                 filePanel = panel {
                     row("File Path:") {
@@ -192,18 +208,10 @@ class EnvProviderConfigDialog(
                                 }
                             )
                             bind(filePathField)
-                        }).validation(
-                            DialogValidation {
-                                validateIfVisible("File") {
-                                    if (filePathField.get()
-                                            .isNotBlank()
-                                    ) null else ValidationInfo("File path cannot be empty")
-                                }
-                            }
-                        )
+                        }).validation(fileFieldValidation())
                     }
                     row("Encoding:") { textField().bindText(encodingField) }
-                }.visible(false)
+                }.visible(providerTypeField.get() == "File")
 
                 structuredFilePanel = panel {
                     row("File Path:") {
@@ -217,18 +225,7 @@ class EnvProviderConfigDialog(
                                 }
                             )
                             bind(filePathField)
-                        }).validation(
-                            DialogValidation {
-                                validateIfVisible("StructuredFile") {
-                                  when {
-                                      filePathField.get()
-                                          .isBlank() -> ValidationInfo("File path cannot be empty")
-
-                                      else -> null
-                                  }
-                                }
-                            }
-                        )
+                        }).validation(fileFieldValidation())
                     }
                     row("Format:") {
                         comboBox(
@@ -236,18 +233,22 @@ class EnvProviderConfigDialog(
                             SimpleListCellRenderer.create("") { it })
                             .bindItem(structuredFormatField)
                     }
-                    row("Key:") { textField().bindText(keyField).validation(
-                        DialogValidation {
-                            validateIfVisible("StructuredFile") {
-                              when{
-                                keyField.get().isBlank() -> ValidationInfo("Key cannot be empty")
-                                else -> null
-                              }
+                    row("Key:") {
+                        textField().bindText(keyField).validation(
+                            DialogValidation {
+                                validateIfVisible("StructuredFile") {
+                                    when {
+                                        keyField.get()
+                                            .isBlank() -> ValidationInfo("Key cannot be empty")
+
+                                        else -> null
+                                    }
+                                }
                             }
-                        }
-                    ) }
+                        )
+                    }
                     row("Encoding:") { textField().bindText(encodingField) }
-                }.visible(false)
+                }.visible(providerTypeField.get() == "StructuredFile")
             }
 
             row("Enable the configuration:") { checkBox("Enabled").bindSelected(enabled) }
@@ -270,16 +271,9 @@ class EnvProviderConfigDialog(
         }
     }
 
-
     protected inner class TestConfigurationAction : DialogWrapperAction("Test Configuration") {
         override fun doAction(e: ActionEvent) {
             presenter.testConfiguration(this@EnvProviderConfigDialog)
-        }
-    }
-
-    override fun doOKAction() {
-        if (presenter.showDialog(this)) {
-            super.doOKAction()
         }
     }
 
