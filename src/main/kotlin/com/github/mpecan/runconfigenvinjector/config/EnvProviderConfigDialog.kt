@@ -27,9 +27,9 @@ class EnvProviderConfigDialog(
         "MavenRunConfiguration" to "Maven",
         "GradleRunConfiguration" to "Gradle"
     )
-    private val envVarField = AtomicProperty(config.environmentVariable)
-    private val enabled = AtomicProperty(config.enabled)
-    private val enabledRunConfigurations =
+    internal val envVarField = AtomicProperty(config.environmentVariable)
+    internal val enabled = AtomicProperty(config.enabled)
+    internal val enabledRunConfigurations =
         AtomicProperty(config.enabledRunConfigurations.ifEmpty { availableRunConfigurations.keys.toList() }
             .toSet())
     private val providerTypeField = AtomicProperty(config.type.let {
