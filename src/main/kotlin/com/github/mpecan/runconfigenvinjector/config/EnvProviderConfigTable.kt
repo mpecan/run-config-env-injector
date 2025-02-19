@@ -65,7 +65,7 @@ class EnvProviderTableModel : AbstractTableModel() {
 
     init {
         // validate and discard invalid configurations on load
-        val validConfigurations = EnvProviderSettings.getInstance().state.configurations.filter {
+        val validConfigurations = EnvProviderSettings.getInstance().state.getFromStoredConfigurations().filter {
            try {
                it.environmentVariable.isNotBlank() && it.type.isNotBlank()
            } catch (e: Exception) {
@@ -113,8 +113,8 @@ class EnvProviderTableModel : AbstractTableModel() {
     }
 
     fun applySettings() {
-        EnvProviderSettings.getInstance().state.configurations = ArrayList(configs)
+        EnvProviderSettings.getInstance().state.setToStoredConfigurations(configs)
     }
 
-    fun isModified() = EnvProviderSettings.getInstance().state.configurations != configs
+    fun isModified() = EnvProviderSettings.getInstance().state.getFromStoredConfigurations() != configs
 }

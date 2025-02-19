@@ -13,7 +13,28 @@ class EnvProviderSettings : SimplePersistentStateComponent<EnvProviderState>(Env
     }
 }
 
-class EnvProviderState: BaseState() {
-    var configurations by list<EnvProviderConfig>()
+class StoredConfiguration : BaseState() {
+    var environmentVariable by string()
+    var enabled by property(true)
+    var enabledRunConfigurations by list<String>()
+    var type by string()
+    var additionalSettings by map<String, String>()
+}
+
+class EnvProviderState : BaseState() {
+    var configurations by list<StoredConfiguration>()
+
+    fun setToStoredConfigurations(configs: List<EnvProviderConfig>) {
+        configurations = configs.map { it.toStoredConfiguration() }.toMutableList()
+    }
+
+    fun getFromStoredConfigurations() = configurations.mapNotNull {
+        when (it?.type) {
+            "CodeArtifact" -> CodeArtifactConfig.fromStoredConfiguration(it)
+            "File" -> FileEnvProviderConfig.fromStoredConfiguration(it)
+            "StructuredFile" -> StructuredFileEnvProviderConfig.fromStoredConfiguration(it)
+            else -> null
+        }
+    }
 }
 

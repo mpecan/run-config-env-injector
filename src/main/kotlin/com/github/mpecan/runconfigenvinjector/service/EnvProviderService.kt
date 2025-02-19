@@ -8,6 +8,6 @@ import com.intellij.openapi.components.Service
 class EnvProviderService {
 
     fun getEnabledConfigurations(): List<EnvProviderConfig> {
-        return EnvProviderSettings.getInstance().state.configurations.filter { it.enabled }
+        return EnvProviderSettings.getInstance().state.getFromStoredConfigurations().filter { it.enabled }
     }
 }
