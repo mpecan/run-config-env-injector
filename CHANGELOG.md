@@ -2,6 +2,13 @@
 
 # run-config-env-injector Changelog
 
+## [1.1.2](https://github.com/mpecan/run-config-env-injector/compare/v1.1.1...v1.1.2) (2025-02-19)
+
+
+### Bug Fixes
+
+* **store-settings-correctly:** store the settings in a correct manner ([#42](https://github.com/mpecan/run-config-env-injector/issues/42)) ([cff6fc3](https://github.com/mpecan/run-config-env-injector/commit/cff6fc3141dd0f7a08a1bce664b382f2a3021f96))
+
 ## [1.1.1](https://github.com/mpecan/run-config-env-injector/compare/v1.1.0...v1.1.1) (2025-02-19)
 
 
