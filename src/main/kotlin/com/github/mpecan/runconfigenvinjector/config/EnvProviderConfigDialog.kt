@@ -52,7 +52,11 @@ class EnvProviderConfigDialog(
         AtomicProperty((config as? CodeArtifactConfig)?.tokenDuration ?: 3600)
 
     // File specific fields
-    private val filePathField = AtomicProperty((config as? FileEnvProviderConfig)?.filePath ?: "")
+    private val filePathField = AtomicProperty(when{
+        config is FileEnvProviderConfig -> config.filePath
+        config is StructuredFileEnvProviderConfig -> config.filePath
+        else -> ""
+    })
     private val encodingField =
         AtomicProperty((config as? FileEnvProviderConfig)?.encoding ?: "UTF-8")
 

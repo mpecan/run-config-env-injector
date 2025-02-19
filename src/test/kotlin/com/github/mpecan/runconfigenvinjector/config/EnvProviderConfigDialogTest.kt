@@ -1,7 +1,6 @@
 package com.github.mpecan.runconfigenvinjector.config
 
-import com.github.mpecan.runconfigenvinjector.state.BaseEnvProviderConfig
-import com.github.mpecan.runconfigenvinjector.state.EnvProviderConfig
+import com.github.mpecan.runconfigenvinjector.state.*
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -93,5 +92,33 @@ class EnvProviderConfigDialogTest : BasePlatformTestCase() {
         assertEquals("File", finalConfig.type)
         assertFalse(finalConfig.enabled)
         assertTrue(finalConfig.enabledRunConfigurations.contains("GradleRunConfiguration"))
+    }
+
+    fun testInputOutputConsistency() {
+        // Try setting the configuration and then retrieving it back
+        val configs = listOf(
+            CodeArtifactConfig(
+                environmentVariable = "TEST_VAR_1",
+                enabled = true,
+                enabledRunConfigurations = setOf("MavenRunConfiguration")
+            ),
+            StructuredFileEnvProviderConfig(
+                environmentVariable = "TEST_VAR_2",
+                enabled = false,
+                enabledRunConfigurations = setOf("GradleRunConfiguration"),
+                filePath = "/path/to/file"
+            ),
+            FileEnvProviderConfig(
+                environmentVariable = "TEST_VAR_3",
+                enabled = true,
+                enabledRunConfigurations = setOf("MavenRunConfiguration"),
+                filePath = "/path/to/file"
+            )
+        )
+        configs.forEach { config ->
+            dialog  = EnvProviderConfigDialog(config, mockPresenter)
+            val updatedConfig = dialog.getUpdatedConfig()
+            assertEquals(config, updatedConfig)
+        }
     }
 }
