@@ -131,7 +131,7 @@ class EnvProviderConfigDialog(
                                         domainField.get()
                                             .contains(" ") -> ValidationInfo("Domain cannot contain spaces")
 
-                                        domainField.get().length < 3 -> ValidationInfo("Domain must be at least 3 characters long")
+                                        domainField.get().length < 2 -> ValidationInfo("Domain must be at least 2 characters long")
                                         domainField.get().matches(Regex("[a-zA-Z0-9-]+")) -> null
                                         else -> ValidationInfo("Domain can only contain alphanumeric characters and hyphens")
                                     }
